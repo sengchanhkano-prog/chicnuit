@@ -1,4 +1,0 @@
-User-agent: *
-Allow: /
-
-Sitemap: https://sengchanhkano-prog.github.io/chicnuit/sitemap.xml
