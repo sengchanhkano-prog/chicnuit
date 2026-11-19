@@ -14,7 +14,9 @@ h1,h2,.serif{font-family:'Fraunces',Georgia,serif;letter-spacing:-.01em}
 .ghero h1{font-size:clamp(2rem,5.5vw,3.4rem);margin:0;line-height:1.12;text-shadow:0 2px 14px rgba(0,0,0,.4)}
 .ghero p{margin:16px auto 0;max-width:600px;font-size:1.02rem;opacity:.95}
 .ghero .cta2{margin-top:26px;display:flex;gap:12px;justify-content:center;flex-wrap:wrap}
-main{max-width:1060px;margin:0 auto;padding:34px 22px}
+main{padding:0}
+.wrap{max-width:1060px;margin:0 auto;padding:30px 22px}
+.ghero{position:relative;min-height:560px;display:flex;align-items:center;justify-content:center;text-align:center;color:#fff}
 .kicker{color:var(--accent);font-weight:800;font-size:.8rem;letter-spacing:.14em;text-transform:uppercase;margin:0 0 8px}
 h2.sec{font-size:clamp(1.5rem,3vw,2rem);margin:0 0 22px}
 .grid{display:grid;gap:26px 22px;grid-template-columns:repeat(auto-fill,minmax(300px,1fr))}
