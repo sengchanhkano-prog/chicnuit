@@ -51,8 +51,11 @@
   }
 
   /* --- diaporama du héros ---------------------------------------------- */
+  /* Une diapositive toutes les 3 secondes, toujours (même en mouvement réduit :
+     un fondu n'est pas un grand déplacement). Décision Bolton 26/11/2026 :
+     « 3 secondes, comme ça les gens voient tous les appartements ». */
   var slides = document.querySelectorAll(".hero-media .slide");
-  if (slides.length > 1 && motionOK) {
+  if (slides.length > 1) {
     var i = 0;
     window.setInterval(function () {
       slides[i].classList.remove("is-on");
@@ -166,15 +169,119 @@
 })();
 
 
+/* ---------------------------------------------------------------- vos dates
+   Dates choisies par le visiteur -> moteur de réservation Beds24 chargé dans un
+   cadre avec les dates et le nombre de voyageurs : c'est LUI qui affiche le prix
+   exact et la disponibilité (aucun prix recalculé côté site). */
+document.querySelectorAll("form[data-reserver]").forEach((f) => {
+  const fenetre = document.querySelector("[data-fenetre]");
+  if (!fenetre) return;
+  const cadre = fenetre.querySelector("iframe");
+  const rouleau = fenetre.querySelector("[data-rouleau]");
+  const boutonFermer = fenetre.querySelector(".moteur-fermer");
+  const retour = f.querySelector(".reserver-retour") || f.parentElement.querySelector(".reserver-retour");
+  const bouton = f.querySelector('button[type="submit"]');
+  const arrivee = f.elements.arrivee, depart = f.elements.depart, voyageurs = f.elements.voyageurs;
+  const aujourdhui = new Date();
+  aujourdhui.setHours(0, 0, 0, 0);
+  const iso = (d) => d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0");
+  arrivee.min = iso(aujourdhui);
+  depart.min = iso(aujourdhui);
+  let minuteur = null;
+
+  const enDate = (s) => { const [y, m, d] = s.split("-").map(Number); return new Date(y, m - 1, d); };
+  const enTexte = (d) => d.toLocaleDateString("fr-FR", { day: "numeric", month: "short", year: "numeric" });
+
+  const afficher = () => {
+    if (!arrivee.value || !depart.value) {
+      retour.textContent = "Le prix dépend des dates\u00a0: il s\u2019affiche dès que vos deux dates sont choisies.";
+      retour.classList.remove("est-erreur");
+      return false;
+    }
+    const da = enDate(arrivee.value), dd = enDate(depart.value);
+    const nuits = Math.round((dd - da) / 86400000);
+    retour.classList.add("est-erreur");
+    if (da < aujourdhui) { retour.textContent = "Choisissez une arrivée à partir d\u2019aujourd\u2019hui."; return false; }
+    if (nuits < 1) { retour.textContent = "Le départ doit être après l\u2019arrivée."; return false; }
+    if (nuits > 28) { retour.textContent = "Pour un séjour de plus de 28 nuits, écrivez-nous avec le formulaire en bas de page."; return false; }
+    retour.classList.remove("est-erreur");
+    const pluriel = voyageurs.value === "1" ? "voyageur" : "voyageurs";
+    retour.textContent = nuits + (nuits > 1 ? " nuits" : " nuit") + " · du " + enTexte(da) + " au " + enTexte(dd)
+      + " · " + voyageurs.value + "\u00a0" + pluriel;
+    const url = "https://www.beds24.com/booking.php?propid=" + encodeURIComponent(f.dataset.propid)
+      + "&checkin=" + arrivee.value + "&checkout=" + depart.value + "&adults=" + voyageurs.value;
+    if (cadre.getAttribute("src") !== url) cadre.src = url;
+    else aPlacer = true;
+    // les dates choisies préremplissent le formulaire de contact
+    const dates = document.querySelector("form[data-contact] input[name=\"dates\"]");
+    if (dates) dates.value = "Du " + enTexte(da) + " au " + enTexte(dd) + " · " + voyageurs.value + "\u00a0" + pluriel;
+    return true;
+  };
+
+  /* La page du moteur Beds24 commence par un grand diaporama : le prix se trouve plus bas
+     (mesuré le 26/11/2026 : 567 px de haut au bureau ; sur téléphone, selon la largeur).
+     On fait donc défiler la fenêtre jusqu'à la barre de recherche et le prix. Si la
+     disposition de Beds24 change, ce défilement tombe simplement un peu à côté :
+     rien n'est masqué, tout reste accessible en défilant. */
+  const positionPrix = (largeur) => {
+    if (largeur >= 768) return 567;
+    if (largeur <= 414) return Math.round(2.667 * largeur + 235);
+    return null;
+  };
+  let aPlacer = false, touche = false;
+  const placer = () => {
+    aPlacer = false;
+    if (fenetre.hidden) return;
+    const largeur = rouleau.clientWidth;
+    const y = positionPrix(largeur);
+    if (y === null) { rouleau.scrollTo(0, 0); return; }
+    rouleau.scrollTo(0, Math.max(0, y - (largeur < 621 ? 500 : 265)));
+  };
+  cadre.addEventListener("load", () => {
+    window.setTimeout(() => { if (!touche) placer(); }, 1500);
+    window.setTimeout(() => { if (!touche && aPlacer === false && !fenetre.hidden && rouleau.scrollTop === 0) placer(); }, 4500);
+  });
+  fenetre.addEventListener("wheel", () => { touche = true; }, { passive: true });
+  fenetre.addEventListener("touchstart", () => { touche = true; }, { passive: true });
+
+  const ouvrir = () => {
+    fenetre.hidden = false;
+    document.body.classList.add("moteur-ouvert");
+    boutonFermer.focus();
+    touche = false;
+    window.requestAnimationFrame(placer);
+  };
+  const fermer = () => {
+    fenetre.hidden = true;
+    document.body.classList.remove("moteur-ouvert");
+    if (bouton) bouton.focus();
+  };
+  fenetre.querySelectorAll("[data-fermer]").forEach((el) => el.addEventListener("click", fermer));
+  document.addEventListener("keydown", (e) => { if (e.key === "Escape" && !fenetre.hidden) fermer(); });
+
+  f.addEventListener("submit", (e) => { e.preventDefault(); if (afficher()) ouvrir(); });
+  f.addEventListener("change", (e) => {
+    clearTimeout(minuteur);
+    const champ = e.target;
+    minuteur = setTimeout(() => {
+      const ok = afficher();
+      if (ok && (champ === arrivee || champ === depart)) ouvrir();
+    }, 350);
+  });
+});
+
+
 /* ---------------------------------------------------------------- contact
-   Formulaire « une date en tête ? » : POST vers le service de contact
-   (nestreply-contact :8119 -> e-mail + Telegram). Cors simple : text/plain. */
+   Formulaire « Écrivez-nous, on répond vite » : POST vers le service de contact
+   (nestreply-contact :8119 -> e-mail dans la boîte personnelle de Kano + Telegram).
+   Cors simple : text/plain. */
 document.querySelectorAll("form[data-contact]").forEach((f) => {
   const t0 = f.querySelector('input[name="t0"]');
   if (t0) t0.value = Date.now();
   const retour = f.querySelector(".contact-retour");
   const bouton = f.querySelector('button[type="submit"]');
-  const liberate = "Envoyer la demande";
+  const libelle = bouton ? bouton.textContent : "Envoyer";
+  const mail = f.dataset.mail || "";
 
   f.addEventListener("submit", async (e) => {
     e.preventDefault();
@@ -206,18 +313,17 @@ document.querySelectorAll("form[data-contact]").forEach((f) => {
       });
       const j = await r.json();
       if (j.ok) {
-        retour.textContent = "Merci ! Votre demande est partie, nous vous répondons par e-mail.";
+        retour.textContent = "Merci ! Votre demande est partie\u00a0: on vous répond par e-mail.";
         f.reset();
       } else {
-        retour.textContent = "Cela n'a pas fonctionné. Écrivez-nous directement sur Airbnb.";
-        retour.classList.add("est-erreur");
+        throw new Error("refus " + r.status);
       }
     } catch (err) {
-      retour.textContent = "Cela n'a pas fonctionné. Écrivez-nous directement sur Airbnb.";
+      retour.textContent = "Cela n\u2019a pas fonctionné. Écrivez-nous directement à " + mail + ".";
       retour.classList.add("est-erreur");
     } finally {
       bouton.disabled = false;
-      bouton.textContent = liberate;
+      bouton.textContent = libelle;
     }
   });
 });

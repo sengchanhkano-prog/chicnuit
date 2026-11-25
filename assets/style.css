@@ -85,7 +85,7 @@ p { max-width: 66ch; }
 
 /* --- boutons ----------------------------------------------------------- */
 .btn {
-  display: inline-flex; align-items: center; justify-content: center; gap: 10px;
+  display: inline-flex; align-items: center; justify-content: center; gap: 10px; text-align: center;
   min-height: 50px; padding: 0 26px;
   font-size: 0.8rem; font-weight: 500; letter-spacing: 0.1em; text-transform: uppercase;
   border: 1px solid var(--accent);
@@ -301,8 +301,13 @@ body[data-theme="C"] .anneau-ombre { background: radial-gradient(50% 50% at 50% 
 
 /* ---------------------------------------------------------------- formulaire contact */
 .contact { padding: clamp(56px, 9vw, 110px) 0; }
-.contact-in { max-width: 720px; margin: 0 auto; padding: 0 24px; }
-.contact-lede { margin: 14px 0 34px; max-width: 46ch; }
+.contact-in { max-width: 780px; margin: 0 auto; padding: 0 24px; }
+.contact-cadre {
+  background: var(--bg-2); border: 1px solid var(--ligne);
+  padding: clamp(28px, 4.6vw, 56px);
+}
+.contact-cadre .titre-2 { margin-bottom: 8px; }
+.contact-lede { margin: 0 0 30px; max-width: 52ch; color: var(--txt-2); }
 .contact-grille { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
 @media (max-width: 640px) { .contact-grille { grid-template-columns: 1fr; } }
 .champ { display: block; margin-bottom: 20px; }
@@ -317,12 +322,100 @@ body[data-theme="C"] .anneau-ombre { background: radial-gradient(50% 50% at 50% 
 }
 .champ textarea { resize: vertical; min-height: 96px; line-height: 1.6; }
 .champ input:focus, .champ textarea:focus { outline: none; border-bottom-color: var(--accent); }
-.champ input::placeholder, .champ textarea::placeholder { color: inherit; opacity: 0.42; }
+.champ input::placeholder, .champ textarea::placeholder { color: inherit; opacity: 0.6; }
 .contact-piege { position: absolute; left: -9999px; width: 1px; height: 1px; overflow: hidden; }
 .contact-bas { display: flex; align-items: center; gap: 18px; flex-wrap: wrap; margin-top: 8px; }
 .contact-retour { font-size: 0.92rem; opacity: 0.85; }
 .contact-retour.est-erreur { opacity: 1; }
 .contact-mention { font-size: 0.78rem; opacity: 0.55; margin-top: 14px; }
+
+/* --- légende des diapositives de l'accueil ----------------------------- */
+/* Nom + ville du logement montré par le diaporama du haut (une photo toutes les 3 s). */
+.slide-titre {
+  position: absolute; z-index: 2; left: 26px; top: 112px;
+  font-size: 0.7rem; letter-spacing: 0.2em; text-transform: uppercase; color: #fff;
+  text-shadow: 0 1px 18px rgba(0,0,0,.8), 0 0 3px rgba(0,0,0,.85);
+}
+
+/* --- vos dates, votre prix --------------------------------------------- */
+/* Le visiteur choisit ses dates ; le moteur Beds24 (prix et disponibilité en direct)
+   se charge dans le cadre. Aucun prix n'est écrit en dur sur le site. */
+.reserver {
+  border-bottom: 1px solid var(--ligne); background: var(--bg-2);
+  padding: clamp(34px, 5vw, 62px) var(--gouttiere);
+}
+.reserver-in { max-width: var(--maxw); margin: 0 auto; }
+.reserver .titre-2 { margin-bottom: 10px; }
+.reserver-lede { color: var(--txt-2); margin-bottom: 26px; max-width: 66ch; }
+.reserver-barre {
+  display: grid; grid-template-columns: 1fr 1fr 0.7fr auto;
+  gap: 14px; align-items: stretch;
+}
+.reserver-barre .btn { align-self: stretch; }
+.reserver-champ { display: block; border: 1px solid var(--ligne); background: var(--bg); padding: 10px 14px 8px; }
+.reserver-champ > span {
+  display: block; font-size: 0.64rem; letter-spacing: 0.18em; text-transform: uppercase;
+  color: var(--txt-2); margin-bottom: 2px;
+}
+.reserver-champ input, .reserver-champ select {
+  width: 100%; font: inherit; font-size: 1rem; color: var(--txt);
+  background: transparent; border: 0; border-radius: 0; padding: 6px 0; color-scheme: dark;
+}
+.reserver-champ select option { color: #2c2925; background: #f0e9de; }
+.reserver-champ input:focus-visible, .reserver-champ select:focus-visible { outline-offset: 6px; }
+.reserver-retour { min-height: 1.5em; margin-top: 14px; font-size: 0.95rem; color: var(--txt-2); }
+.reserver-retour.est-erreur { color: #e9b79c; }
+.reserver-note { margin-top: 6px; font-size: 0.86rem; color: var(--txt-2); }
+.reserver-note .lien { font-size: inherit; text-transform: none; letter-spacing: 0.02em; }
+
+/* Fenêtre de réservation : le moteur Beds24 (prix + disponibilité en direct, réservation)
+   s'ouvre par-dessus la page avec les dates déjà remplies. */
+.moteur-fenetre { position: fixed; inset: 0; z-index: 150; }
+.moteur-fenetre[hidden] { display: none; }
+.moteur-fond { position: absolute; inset: 0; background: rgba(11, 10, 9, 0.82); }
+.moteur-boite {
+  position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%);
+  width: min(1180px, 95vw); height: min(92vh, 980px);
+  background: #fff; box-shadow: 0 40px 90px -30px rgba(0, 0, 0, 0.95);
+}
+.moteur-fermer {
+  position: absolute; right: 0; top: -50px; z-index: 3;
+  width: 42px; height: 42px; display: flex; align-items: center; justify-content: center;
+  color: #fff; font-size: 1.05rem; background: rgba(255, 255, 255, 0.14);
+  border-radius: 50%; transition: background .25s ease;
+}
+.moteur-fermer:hover { background: rgba(255, 255, 255, 0.28); }
+.moteur-rouleau { position: absolute; inset: 0; overflow-y: auto; -webkit-overflow-scrolling: touch; }
+.moteur-rouleau iframe { display: block; width: 100%; height: var(--moteur-h, 1840px); border: 0; background: #fff; }
+body.moteur-ouvert { overflow: hidden; }
+
+@media (max-width: 900px) {
+  .reserver-barre { grid-template-columns: 1fr 1fr; }
+  .reserver-barre .btn { grid-column: 1 / -1; }
+}
+@media (max-width: 620px) {
+  .slide-titre { top: 96px; left: 16px; letter-spacing: 0.16em; }
+  .reserver-barre { grid-template-columns: 1fr; }
+  .moteur-boite { left: 0; top: 0; transform: none; width: 100%; height: 100vh; height: 100dvh; }
+  .moteur-fermer { right: 10px; top: 10px; background: rgba(11, 10, 9, 0.78); }
+  .moteur-rouleau iframe { height: 2780px; }
+}
+
+
+/* ---------------------------------------------------------------- section réservation */
+.reserver { padding: clamp(56px, 8vw, 104px) 0; }
+.reserver-in {
+  display: grid; grid-template-columns: minmax(0, 0.92fr) minmax(0, 1.08fr);
+  gap: clamp(26px, 5vw, 64px); align-items: start;
+  max-width: 1240px; margin: 0 auto; padding: 0 24px;
+}
+.reserver-texte .liste { margin: 20px 0 26px; }
+.reserver-cadre { background: #fff; border: 1px solid var(--ligne); border-radius: 6px; overflow: hidden; }
+.reserver-cadre iframe { display: block; width: 100%; height: 1000px; border: 0; }
+@media (max-width: 980px) {
+  .reserver-in { grid-template-columns: 1fr; }
+  .reserver-cadre iframe { height: 1040px; }
+}
 
 /* ==========================================================================
    MODÈLE A — « Nocturne » : nuit profonde, laiton, rail latéral, diaporama plein cadre
@@ -584,7 +677,18 @@ body[data-theme="A"] .ou-texte p { color: var(--txt-2); margin-bottom: 16px; }
 body[data-theme="A"] .ou-en { font-style: italic; opacity: .8; }
 body[data-theme="A"] .ou-liens { display: flex; flex-wrap: wrap; gap: 22px; margin-top: 24px; }
 body[data-theme="A"] .ou-carte { border: 1px solid var(--ligne); background: var(--bg-2); }
-body[data-theme="A"] .ou-carte iframe { width: 100%; height: 420px; border: 0; filter: grayscale(1) invert(0.92) contrast(0.9); }
+/* Plan en couleurs (décision Bolton 26/11/2026 : « on voit rien, elle est pas en couleur »).
+   Ne JAMAIS remettre grayscale/invert sur cet iframe. */
+body[data-theme="A"] .ou-carte iframe { width: 100%; height: 440px; border: 0; }
+body[data-theme="A"] .fiche-prix--texte b { font-size: 1.4rem; line-height: 1.25; display: block; }
+body[data-theme="A"] .reserver .titre-2 { margin-bottom: 10px; }
+body[data-theme="A"] .faq-logement { margin-top: 38px; }
+body[data-theme="A"] .faq-titre-logements { margin-top: 54px; }
+body[data-theme="A"] .faq-logement .titre-3 { margin-bottom: 12px; }
+body[data-theme="A"] .faq-logement .titre-3 a { border-bottom: 1px solid transparent; transition: border-color .3s ease; }
+body[data-theme="A"] .faq-logement .titre-3 a:hover { border-color: var(--accent); }
+body[data-theme="A"] .contact-cadre { background: var(--bg-2); }
+body[data-theme="A"] .contact .titre-2 { margin-bottom: 6px; }
 
 /* --- faq -------------------------------------------------------------- */
 body[data-theme="A"] .faq { border-top: 1px solid var(--ligne); padding: clamp(70px, 9vw, 120px) var(--gouttiere); }
@@ -626,7 +730,7 @@ body[data-theme="A"] .bientot-note { color: var(--txt-2); margin: 26px 0 30px; m
   body[data-theme="A"] .ess:nth-child(-n+2) { border-top: 0; }
 }
 @media (max-width: 620px) {
-  body[data-theme="A"] .hero-contenu { padding-bottom: 86px; }
+  body[data-theme="A"] .hero-contenu { padding-bottom: 86px; padding-top: 132px; }
   body[data-theme="A"] .display { font-size: clamp(2.3rem, 10.5vw, 3rem); }
   body[data-theme="A"] .hero-fil { font-size: 0.58rem; letter-spacing: 0.18em; }
   body[data-theme="A"] .addr-cadre { min-height: 74vw; }
