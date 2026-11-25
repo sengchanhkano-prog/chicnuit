@@ -58,7 +58,7 @@
       slides[i].classList.remove("is-on");
       i = (i + 1) % slides.length;
       slides[i].classList.add("is-on");
-    }, 6500);
+    }, 3000);
   }
 
   /* --- parallaxe douce du héros --------------------------------------- */
