@@ -353,7 +353,16 @@ body[data-theme="A"] .hero-contenu::after {
   content: ""; position: absolute; right: 0; top: 14%; bottom: 14%; width: 1px;
   background: linear-gradient(180deg, transparent, var(--accent), transparent); opacity: .7;
 }
-body[data-theme="A"] .hero-contenu .display { max-width: 100%; margin-bottom: 22px; font-size: clamp(2.9rem, 6.2vw, 5.2rem); }
+body[data-theme="A"] .hero-contenu .display {
+  max-width: 100%; margin-bottom: 22px;
+  font-size: clamp(3.1rem, 7vw, 6rem);
+  font-weight: 500;
+  line-height: 0.98;
+}
+body[data-theme="A"] .titre-2 { font-weight: 500; }
+body[data-theme="A"] .addr-nom { font-weight: 500; }
+body[data-theme="A"] .anneau-nom { font-weight: 500; }
+body[data-theme="A"] .fiche-prix b { font-weight: 500; }
 body[data-theme="A"] .hero-contenu .lede { max-width: 34ch; margin-bottom: 26px; }
 body[data-theme="A"] .hero-meta { display: flex; flex-wrap: wrap; align-items: center; gap: 22px; margin-bottom: 30px;
   padding-top: 18px; border-top: 1px solid var(--ligne); }
