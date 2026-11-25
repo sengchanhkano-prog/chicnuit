@@ -164,3 +164,60 @@
     obsPiste.observe(piste);
   }
 })();
+
+
+/* ---------------------------------------------------------------- contact
+   Formulaire « une date en tête ? » : POST vers le service de contact
+   (nestreply-contact :8119 -> e-mail + Telegram). Cors simple : text/plain. */
+document.querySelectorAll("form[data-contact]").forEach((f) => {
+  const t0 = f.querySelector('input[name="t0"]');
+  if (t0) t0.value = Date.now();
+  const retour = f.querySelector(".contact-retour");
+  const bouton = f.querySelector('button[type="submit"]');
+  const liberate = "Envoyer la demande";
+
+  f.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const d = Object.fromEntries(new FormData(f).entries());
+    if (d.website) return;                       // champ piège rempli = robot
+    if (!d.nom || !d.email || !d.message) {
+      retour.textContent = "Merci de remplir votre nom, votre e-mail et un message.";
+      retour.classList.add("est-erreur");
+      return;
+    }
+    bouton.disabled = true;
+    bouton.textContent = "Envoi…";
+    retour.classList.remove("est-erreur");
+    try {
+      const r = await fetch("https://nestreply.com/api/contact", {
+        method: "POST",
+        headers: { "Content-Type": "text/plain" },
+        body: JSON.stringify({
+          nom: d.nom,
+          email: d.email,
+          message: (d.dates ? "Dates souhaitées : " + d.dates + "\n\n" : "") + d.message,
+          entreprise: "Chicnuit — " + f.dataset.logement,
+          offre: f.dataset.logement,
+          site: location.href,
+          origine: "chicnuit",
+          t0: d.t0,
+          website2: d.website2 || ""
+        })
+      });
+      const j = await r.json();
+      if (j.ok) {
+        retour.textContent = "Merci ! Votre demande est partie, nous vous répondons par e-mail.";
+        f.reset();
+      } else {
+        retour.textContent = "Cela n'a pas fonctionné. Écrivez-nous directement sur Airbnb.";
+        retour.classList.add("est-erreur");
+      }
+    } catch (err) {
+      retour.textContent = "Cela n'a pas fonctionné. Écrivez-nous directement sur Airbnb.";
+      retour.classList.add("est-erreur");
+    } finally {
+      bouton.disabled = false;
+      bouton.textContent = liberate;
+    }
+  });
+});
