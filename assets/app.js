@@ -327,3 +327,63 @@ document.querySelectorAll("form[data-contact]").forEach((f) => {
     }
   });
 });
+
+/* ---------------------------------------------------------------- dates prises
+   Kano 26/11 : les dates déjà réservées sont barrées tout de suite dans le calendrier.
+   dispo.json (racine du site) = nuits indisponibles par logement, exporté de Beds24
+   toutes les 30 min (dispo_export.py). Sans ce fichier : calendrier normal, le moteur
+   Beds24 reste juge de la disponibilité. */
+(function () {
+  var f = document.querySelector("form[data-reserver][data-slug]");
+  if (!f || !window.fetch || !window.Promise) return;
+  var V = "https://cdn.jsdelivr.net/npm/flatpickr@4.6.13/dist/";
+  var charger = function (src, css) {
+    return new Promise(function (ok, ko) {
+      var e = document.createElement(css ? "link" : "script");
+      if (css) { e.rel = "stylesheet"; e.href = src; } else { e.src = src; }
+      e.onload = ok; e.onerror = ko; document.head.appendChild(e);
+    });
+  };
+  var iso = function (d) {
+    return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0");
+  };
+  var dispo = fetch("../dispo.json", { cache: "no-store" })
+    .then(function (r) { return r.ok ? r.json() : null; }).catch(function () { return null; });
+  Promise.all([dispo, charger(V + "flatpickr.min.css", true), charger(V + "themes/dark.css", true),
+               charger(V + "flatpickr.min.js")])
+    .then(function (r) { return charger(V + "l10n/fr.js").then(function () { return r[0]; }); })
+    .then(function (d) {
+      if (!window.flatpickr) return;
+      var pris = {};
+      ((d && d.logements && d.logements[f.dataset.slug]) || []).forEach(function (s) { pris[s] = 1; });
+      var nuitPrise = function (x) { return !!pris[iso(x)]; };
+      var arr = f.elements.arrivee, dep = f.elements.depart;
+      var commun = { locale: flatpickr.l10ns.fr, dateFormat: "Y-m-d", altInput: true, altFormat: "j M Y",
+                     disableMobile: true, minDate: "today", maxDate: (d && d.jusqu_au) || null };
+      var departOk = function (x) {
+        if (!arr.value) return true;
+        var a = new Date(arr.value + "T00:00:00");
+        if (x <= a) return false;
+        for (var n = new Date(a); n < x; n.setDate(n.getDate() + 1)) if (nuitPrise(n)) return false;
+        return true;
+      };
+      var fpDep = flatpickr(dep, Object.assign({}, commun, { disable: [function (x) { return !departOk(x); }] }));
+      flatpickr(arr, Object.assign({}, commun, {
+        disable: [nuitPrise],
+        onChange: function (sel) {
+          if (!sel[0]) return;
+          fpDep.set("disable", [function (x) { return !departOk(x); }]);
+          if (dep.value && !departOk(new Date(dep.value + "T00:00:00"))) fpDep.clear();
+          fpDep.jumpToDate(sel[0]);
+          window.setTimeout(function () { fpDep.open(); }, 80);
+        }
+      }));
+      if (d && d.logements) {
+        var p = document.createElement("p");
+        p.className = "reserver-legende";
+        p.textContent = "Les dates barrées sont déjà réservées.";
+        var ret = f.parentElement.querySelector(".reserver-retour");
+        (ret || f).insertAdjacentElement("afterend", p);
+      }
+    }).catch(function () { /* CDN injoignable : les champs de date d'origine restent */ });
+})();

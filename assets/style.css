@@ -184,9 +184,11 @@ body.menu-ouvert { overflow: hidden; }
 }
 .anneau-txt {
   position: absolute; left: 0; right: 0; bottom: 0; z-index: 2;
-  display: flex; flex-direction: column; gap: 4px; padding: 18px 20px 20px; color: #fff;
+  display: flex; flex-direction: column; gap: 4px; padding: 16px 20px 18px;
+  /* Kano 26/11 : bandeau plein de la couleur du site (lisible sur toutes les photos) */
+  color: var(--txt, #f0e9de); background: var(--bg, #2c2925); border-top: 1px solid var(--accent, #c8ae84);
 }
-.anneau-ville { font-size: 0.6rem; letter-spacing: 0.22em; text-transform: uppercase; color: rgba(255,255,255,.78); }
+.anneau-ville { font-size: 0.6rem; letter-spacing: 0.22em; text-transform: uppercase; color: var(--accent, #c8ae84); }
 .anneau-nom { font-family: var(--serif); font-size: 1.3rem; line-height: 1.1; letter-spacing: -0.01em; }
 .anneau-prix { font-size: 0.8rem; color: rgba(255,255,255,.85); margin-top: 6px; }
 .anneau-prix b { font-family: var(--serif); font-size: 1.25rem; font-weight: 400; }
@@ -204,13 +206,27 @@ body[data-theme="C"] .anneau-ombre { background: radial-gradient(50% 50% at 50% 
 }
 
 .anneau-piste.est-statique { transform: none !important; }
-.anneau-piste.est-statique .anneau-carte {
-  position: relative; display: inline-block; width: 46%; margin: 1.5%;
-  transform: none; backface-visibility: visible;
-  vertical-align: top;
+/* mouvement réduit (réglage du téléphone / Mac) : les 5 cartes à plat, en grille.
+   Avant le 26/11 la piste faisait 0 px de large : section vide. */
+.anneau-piste.est-statique {
+  width: min(100%, 1180px); height: auto; margin: 0 auto; padding: 0 var(--gouttiere);
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 18px;
 }
-.anneau-piste.est-statique { width: auto; height: auto; }
-.anneau-scene:has(.anneau-piste.est-statique) { height: auto; }
+.anneau-piste.est-statique .anneau-carte {
+  position: relative; inset: auto; display: flex; flex-direction: column; width: auto; margin: 0;
+  transform: none; backface-visibility: visible;
+}
+.anneau-piste.est-statique .anneau-img { position: relative; inset: auto; aspect-ratio: 4 / 5; }
+.anneau-piste.est-statique .anneau-img::after { display: none; }
+.anneau-piste.est-statique .anneau-txt { position: relative; flex: 1; }
+.anneau-scene:has(.anneau-piste.est-statique) { height: auto; display: block; }
+.anneau-scene:has(.anneau-piste.est-statique) + .anneau-ombre { display: none; }
+.anneau-tete > * { margin-left: auto; margin-right: auto; }
+/* calendrier (flatpickr) aux couleurs du site : dates prises barrées */
+.flatpickr-calendar { font-family: var(--sans); }
+.flatpickr-day.selected, .flatpickr-day.selected:hover { background: var(--accent, #c8ae84); border-color: var(--accent, #c8ae84); color: var(--txt-sur-accent, #2c2925); }
+.flatpickr-day.flatpickr-disabled, .flatpickr-day.flatpickr-disabled:hover { text-decoration: line-through; opacity: .38; }
+.reserver-legende { margin-top: 8px; font-size: 0.85rem; color: var(--txt-2); }
 
 /* --- explication / promesses ------------------------------------------ */
 .experience { padding: clamp(70px, 9vw, 120px) var(--gouttiere); border-top: 1px solid var(--ligne); }
@@ -333,8 +349,10 @@ body[data-theme="C"] .anneau-ombre { background: radial-gradient(50% 50% at 50% 
 /* Nom + ville du logement montré par le diaporama du haut (une photo toutes les 3 s). */
 .slide-titre {
   position: absolute; z-index: 2; left: 26px; top: 112px;
-  font-size: 0.7rem; letter-spacing: 0.2em; text-transform: uppercase; color: #fff;
-  text-shadow: 0 1px 18px rgba(0,0,0,.8), 0 0 3px rgba(0,0,0,.85);
+  font-size: 0.7rem; letter-spacing: 0.2em; text-transform: uppercase;
+  /* Kano 26/11 : nom + ville sur un fond de la couleur du site, jamais blanc sur photo */
+  color: var(--accent, #c8ae84); background: var(--bg, #2c2925); padding: 9px 14px 8px;
+  box-shadow: 0 8px 24px -10px rgba(0,0,0,.6);
 }
 
 /* --- vos dates, votre prix --------------------------------------------- */
